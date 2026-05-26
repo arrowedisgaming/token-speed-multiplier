@@ -13,6 +13,12 @@
   </a>
 </p>
 
+<p align="center">
+  <video src="https://files.arrowed.games/TokenSpeed.mp4" autoplay muted loop playsinline controls width="720">
+    <a href="https://files.arrowed.games/TokenSpeed.mp4">Watch the demo video</a>
+  </video>
+</p>
+
 ## What it does
 
 Adds a single slider to your module settings: **Token Animation Speed Multiplier.** Slide it up and your tokens fly across the canvas. Slide it down and they crawl.

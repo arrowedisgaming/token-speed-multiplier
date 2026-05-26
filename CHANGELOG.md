@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- README now embeds a short demo video showing the multiplier in action.
+
 ## [1.0.1] - 2026-05-26
 
 ### Added
