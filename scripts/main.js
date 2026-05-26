@@ -12,10 +12,10 @@ Hooks.once("init", () => {
     range: { min: 0.1, max: 10, step: 0.1 },
   });
 
-  const proto = CONFIG.Token.objectClass.prototype;
-  if (typeof proto._getAnimationMovementSpeed !== "function") {
+  const proto = CONFIG?.Token?.objectClass?.prototype;
+  if (!proto || typeof proto._getAnimationMovementSpeed !== "function") {
     console.warn(
-      `${MOD_ID} | Token.prototype._getAnimationMovementSpeed not found — animation scaling disabled. (Foundry version too old or API renamed.)`
+      `${MOD_ID} | CONFIG.Token.objectClass.prototype._getAnimationMovementSpeed not available — animation scaling disabled. (Foundry version too old or API renamed.)`
     );
     return;
   }

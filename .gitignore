@@ -12,3 +12,10 @@ i-came-across-this-lazy-balloon.md
 
 # Release artifacts
 module.zip
+
+# Secrets — never commit
+keys.txt
+*.key
+*.pem
+.env
+.env.local

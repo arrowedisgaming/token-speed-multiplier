@@ -1,0 +1,138 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Derive version from tag
+        id: version
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          TAG="${REF#refs/tags/}"
+          VER="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Verify module.json version matches tag
+        env:
+          EXPECTED_VER: ${{ steps.version.outputs.version }}
+        run: |
+          MANIFEST_VER=$(jq -r '.version' module.json)
+          if [ "$MANIFEST_VER" != "$EXPECTED_VER" ]; then
+            echo "::error::module.json version ($MANIFEST_VER) does not match tag ($EXPECTED_VER). Bump module.json before tagging."
+            exit 1
+          fi
+
+      - name: Rewrite download URL in module.json to this tag
+        env:
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          REPO_URL="https://github.com/$REPO"
+          DL_URL="$REPO_URL/releases/download/$TAG/module.zip"
+          jq --arg dl "$DL_URL" '.download = $dl' module.json > module.json.tmp
+          mv module.json.tmp module.json
+          echo "--- module.json after rewrite ---"
+          cat module.json
+
+      - name: Build module.zip
+        run: |
+          zip -r module.zip \
+            module.json \
+            scripts \
+            README.md \
+            CHANGELOG.md \
+            LICENSE \
+            -x '*.DS_Store'
+
+      - name: Preflight — confirm Foundry release token is present
+        env:
+          FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
+        run: |
+          if [ -z "$FOUNDRY_RELEASE_TOKEN" ]; then
+            echo "::error::FOUNDRY_RELEASE_TOKEN repo secret is empty or missing. Aborting before any public release artifact is created. Add the secret at: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+
+      - name: Create GitHub Release (as prerelease — promoted only after Foundry confirms)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          prerelease: true
+          make_latest: false
+          files: |
+            module.json
+            module.zip
+
+      - name: Notify Foundry package listing
+        env:
+          FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VER: ${{ steps.version.outputs.version }}
+        run: |
+          REPO_URL="https://github.com/$REPO"
+          MIN=$(jq -r '.compatibility.minimum' module.json)
+          VERIFIED=$(jq -r '.compatibility.verified' module.json)
+          PKG_ID=$(jq -r '.id' module.json)
+
+          PAYLOAD=$(jq -n \
+            --arg id "$PKG_ID" \
+            --arg ver "$VER" \
+            --arg manifest "$REPO_URL/releases/download/$TAG/module.json" \
+            --arg notes "$REPO_URL/releases/tag/$TAG" \
+            --arg min "$MIN" \
+            --arg verified "$VERIFIED" \
+            '{
+              id: $id,
+              release: {
+                version: $ver,
+                manifest: $manifest,
+                notes: $notes,
+                compatibility: { minimum: $min, verified: $verified }
+              }
+            }')
+
+          echo "--- payload ---"
+          echo "$PAYLOAD"
+          echo "---------------"
+
+          HTTP_CODE=$(curl -sS -o response.json -w '%{http_code}' \
+            -X POST 'https://foundryvtt.com/_api/packages/release_version/' \
+            -H "Authorization: $FOUNDRY_RELEASE_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d "$PAYLOAD")
+
+          echo "--- response ($HTTP_CODE) ---"
+          cat response.json || true
+          echo
+          echo "-----------------------------"
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Foundry API returned HTTP $HTTP_CODE. GitHub Release remains as prerelease — end users on auto-update will not see this version. Fix the cause, then re-run the workflow on the same tag (or delete the prerelease and re-tag)."
+            exit 1
+          fi
+
+      - name: Promote prerelease to latest (only on Foundry success)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release edit "$TAG" \
+            --repo "${{ github.repository }}" \
+            --prerelease=false \
+            --latest
