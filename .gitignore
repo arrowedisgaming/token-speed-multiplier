@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Planning / design docs (not for distribution)
+i-came-across-this-lazy-balloon.md
+*.plan.md
+.planning/
+
+# Release artifacts
+module.zip
