@@ -44,7 +44,7 @@ You can play D&D 5e, Black Flag, Delta Green, Pathfinder, or anything else — t
 
 ## Compatibility
 
-- **Foundry VTT:** v14 minimum, v14 verified.
+- **Foundry VTT:** v13 minimum, v14 verified.
 - **Systems:** any
 
 ## License

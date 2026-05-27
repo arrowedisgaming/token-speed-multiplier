@@ -7,9 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-27
+
 ### Added
 
 - README now embeds a short demo video showing the multiplier in action.
+
+### Changed
+
+- `module.json` `compatibility.minimum` lowered from `14` to `13`. Foundry v13's
+  Token class exposes `_getAnimationMovementSpeed(options) → number` with the
+  same signature and return contract (grid size per second) as v14, per the
+  official v13 API docs, so the existing wrap works unmodified. `verified`
+  stays at `14` until a v13 drag-test confirms the multiplier visibly affects
+  token slide speed in v13 in addition to v14.
+- README and AGENTS.md compatibility statements updated to match the manifest
+  (v13 minimum, v14 verified) so docs and `module.json` agree.
 
 ## [1.0.1] - 2026-05-26
 

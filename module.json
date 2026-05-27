@@ -2,7 +2,7 @@
   "id": "token-speed-multiplier",
   "title": "Token Speed Multiplier",
   "description": "Globally scales the visual speed at which tokens slide across the canvas when moved. Purely cosmetic — does not affect movement distance, character sheets, or game-system data. System-agnostic.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "authors": [
     {
       "name": "Arrowed",
@@ -10,7 +10,7 @@
     }
   ],
   "compatibility": {
-    "minimum": "14",
+    "minimum": "13",
     "verified": "14"
   },
   "esmodules": [
@@ -18,7 +18,7 @@
   ],
   "url": "https://github.com/arrowedisgaming/token-speed-multiplier",
   "manifest": "https://github.com/arrowedisgaming/token-speed-multiplier/releases/latest/download/module.json",
-  "download": "https://github.com/arrowedisgaming/token-speed-multiplier/releases/download/v1.0.1/module.zip",
+  "download": "https://github.com/arrowedisgaming/token-speed-multiplier/releases/download/v1.1.0/module.zip",
   "license": "LICENSE",
   "readme": "README.md",
   "changelog": "CHANGELOG.md",
